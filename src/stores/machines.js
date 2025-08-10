@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { config } from '../config'
+
+// Create axios instance with base URL
+const api = axios.create({
+  baseURL: config.apiBaseUrl
+})
 
 export const useMachinesStore = defineStore('machines', {
   state: () => ({
@@ -71,7 +77,7 @@ export const useMachinesStore = defineStore('machines', {
       this.error = null
       
       try {
-        const response = await axios.get('/api/machines')
+        const response = await api.get('/api/machines')
         this.machines = response.data
       } catch (error) {
         this.error = 'Failed to fetch machines'
@@ -83,7 +89,7 @@ export const useMachinesStore = defineStore('machines', {
 
     async fetchMachineById(machineId) {
       try {
-        const response = await axios.get(`/api/machines/${machineId}`)
+        const response = await api.get(`/api/machines/${machineId}`)
         return response.data
       } catch (error) {
         console.error('Error fetching machine:', error)

@@ -113,38 +113,19 @@
 <script>
 import { computed, onMounted } from 'vue'
 import { useMachinesStore } from '../stores/machines'
+import { useDashboardStore } from '../stores/dashboard'
 
 export default {
   name: 'Dashboard',
   setup() {
     const machinesStore = useMachinesStore()
+    const dashboardStore = useDashboardStore()
 
     const statusCounts = computed(() => machinesStore.machinesByStatus)
     
-    const recentActivity = computed(() => {
-      // Mock data for now - would come from API
-      return [
-        { id: 1, message: 'Machine WIN-ABC123 reported disk encryption issue', status: 'warning', timestamp: new Date(Date.now() - 300000) },
-        { id: 2, message: 'Machine MAC-DEF456 updated to latest OS version', status: 'success', timestamp: new Date(Date.now() - 600000) },
-        { id: 3, message: 'Machine LIN-GHI789 antivirus scan completed', status: 'success', timestamp: new Date(Date.now() - 900000) },
-        { id: 4, message: 'Machine WIN-JKL012 sleep settings updated', status: 'success', timestamp: new Date(Date.now() - 1200000) }
-      ]
-    })
+    const recentActivity = computed(() => dashboardStore.recentActivity)
 
-    const osDistribution = computed(() => {
-      const osCounts = {}
-      machinesStore.machines.forEach(machine => {
-        const os = machine.operating_system || 'Unknown'
-        osCounts[os] = (osCounts[os] || 0) + 1
-      })
-      
-      const total = machinesStore.machines.length || 1
-      return Object.entries(osCounts).map(([name, count]) => ({
-        name,
-        count,
-        percentage: Math.round((count / total) * 100)
-      }))
-    })
+    const osDistribution = computed(() => dashboardStore.osDistribution)
 
     const getStatusColor = (status) => {
       const colors = {
@@ -167,8 +148,11 @@ export default {
       return timestamp.toLocaleDateString()
     }
 
-    onMounted(() => {
-      machinesStore.fetchMachines()
+    onMounted(async () => {
+      await Promise.all([
+        dashboardStore.fetchDashboardStats(),
+        machinesStore.fetchMachines()
+      ])
     })
 
     return {
